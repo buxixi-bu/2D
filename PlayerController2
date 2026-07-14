@@ -1,0 +1,44 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+public class PlayerController : MonoBehaviour
+{
+    // 玩家的刚体组件
+    private Rigidbody rb;
+    // X 轴和 Y 轴的移动值
+    private float movementX;
+    private float movementY;
+    // 玩家移动速度
+    public float speed = 0;
+    // Start 函数在第一帧更新前调用
+    void Start()
+    {
+        // 获取并存储挂载在玩家对象上的 Rigidbody 组件
+        rb = GetComponent<Rigidbody>();
+    }
+    // 检测到移动输入时调用此函数
+    void OnMove(InputValue movementValue)
+    {
+        // 将输入值转换为用于移动的 Vector2 类型
+        Vector2 movementVector = movementValue.Get<Vector2>();
+        // 存储移动向量的 X 轴和 Y 轴分量
+        movementX = movementVector.x;
+        movementY = movementVector.y;
+    }
+    // FixedUpdate 函数在固定帧率帧中调用
+    private void FixedUpdate()
+    {
+        // 利用 X/Y 轴输入值创建 3D 移动向量
+        Vector3 movement = new Vector3 (movementX, 0.0f, movementY);
+        // 向刚体施加作用力以移动玩家
+        rb.AddForce(movement * speed);
+    }
+    void OnTriggerEnter(Collider other)
+    {
+        // 检测玩家碰撞的对象是否带有 "PickUp" 标签
+        if (other.gameObject.CompareTag("PickUp"))
+        {
+            // 禁用碰撞到的对象（使其消失）
+            other.gameObject.SetActive(false);
+        }
+    }
+}
