@@ -1,33 +1,46 @@
 using UnityEngine;
 using UnityEngine.Tilemaps;
+using System.Collections.Generic;
 
 public class BoardManager : MonoBehaviour
 {
+    // 单元格数据结构体
+    public class CellData
+    {
+        public bool Passable;
+        public GameObject ContainedObject;
+    }
+
+    // 棋盘二维数据数组
+    private CellData[,] m_BoardData;
+    // 空闲可通行格子列表
+    private List<Vector2Int> m_EmptyCellsList;
+
     private Tilemap m_Tilemap;
     public int Width;
     public int Height;
     public Tile[] GroundTiles;
     public Tile[] WallTiles;
-    public class CellData
-    {
-        public bool Passable;
-    }
 
-    // 棋盘二维数据数组
-    private CellData[,] m_BoardData;
+    // 食物预制体
+    public GameObject FoodPrefab;
 
-    void Start()
+    public void Init()
     {
         m_Tilemap = GetComponentInChildren<Tilemap>();
+        // 初始化空闲格子集合
+        m_EmptyCellsList = new List<Vector2Int>();
         // 初始化棋盘数据数组
         m_BoardData = new CellData[Width, Height];
+
         for (int y = 0; y < Height; ++y)
         {
-            for(int x = 0; x < Width; ++x)
+            for (int x = 0; x < Width; ++x)
             {
                 Tile tile;
                 // 实例化单元格数据
                 m_BoardData[x, y] = new CellData();
+
                 if (x == 0 || y == 0 || x == Width - 1 || y == Height - 1)
                 {
                     tile = WallTiles[Random.Range(0, WallTiles.Length)];
@@ -39,9 +52,53 @@ public class BoardManager : MonoBehaviour
                     tile = GroundTiles[Random.Range(0, GroundTiles.Length)];
                     // 内部地面可通行
                     m_BoardData[x, y].Passable = true;
+                    // 将可行走格子加入空闲列表
+                    m_EmptyCellsList.Add(new Vector2Int(x, y));
                 }
                 m_Tilemap.SetTile(new Vector3Int(x, y, 0), tile);
             }
         }
+
+        // 将玩家出生点从空闲列表移除，该位置不生成食物
+        m_EmptyCellsList.Remove(new Vector2Int(1, 1));
+        // 地图生成完毕，生成食物
+        GenerateFood();
+    }
+
+    void GenerateFood()
+    {
+        int foodCount = 5;
+        for (int i = 0; i < foodCount; ++i)
+        {
+            // 从空闲格子列表随机选取坐标
+            int randomIndex = Random.Range(0, m_EmptyCellsList.Count);
+            Vector2Int randomPos = m_EmptyCellsList[randomIndex];
+            int randomX = randomPos.x;
+            int randomY = randomPos.y;
+
+            CellData data = m_BoardData[randomX, randomY];
+            if (data.Passable && data.ContainedObject == null)
+            {
+                GameObject newFood = Instantiate(FoodPrefab);
+                newFood.transform.position = CellToWorld(new Vector2Int(randomX, randomY));
+                data.ContainedObject = newFood;
+                // 生成后从空闲列表移除，避免重复生成
+                m_EmptyCellsList.RemoveAt(randomIndex);
+            }
+        }
+    }
+
+    // 根据XY坐标获取格子数据
+    public CellData GetCellData(int x, int y)
+    {
+        if (x < 0 || x >= Width || y < 0 || y >= Height)
+            return null;
+        return m_BoardData[x, y];
+    }
+
+    // 格子坐标转世界坐标
+    public Vector3 CellToWorld(Vector2Int cellIndex)
+    {
+        return new Vector3(cellIndex.x, cellIndex.y, 0);
     }
 }
