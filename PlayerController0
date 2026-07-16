@@ -3,16 +3,19 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     public InputAction MoveAction;
-    // Start 在 MonoBehaviour 初始化后、首次执行 Update 前调用一次
+    // MonoBehaviour 初始化后、首次执行 Update 前调用一次 Start
     void Start()
     {
+        //QualitySettings.vSyncCount = 0;
+        //Application.targetFrameRate = 10;
         MoveAction.Enable();
     }
-    // Update 每一帧都会执行
+    // 每一帧都会执行 Update
     void Update()
     {
         Vector2 move = MoveAction.ReadValue<Vector2>();
         Debug.Log(move);
-        Vector2 position = (Vector2)transform.position + move * 0.01f;
+        Vector2 position = (Vector2)transform.position + move * 3.0f * Time.deltaTime;
         transform.position = position;
     }
+}
