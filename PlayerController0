@@ -1,0 +1,18 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+public class PlayerController : MonoBehaviour
+{
+    public InputAction MoveAction;
+    // Start 在 MonoBehaviour 初始化后、首次执行 Update 前调用一次
+    void Start()
+    {
+        MoveAction.Enable();
+    }
+    // Update 每一帧都会执行
+    void Update()
+    {
+        Vector2 move = MoveAction.ReadValue<Vector2>();
+        Debug.Log(move);
+        Vector2 position = (Vector2)transform.position + move * 0.01f;
+        transform.position = position;
+    }
