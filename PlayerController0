@@ -1,21 +1,32 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+
 public class PlayerController : MonoBehaviour
 {
     public InputAction MoveAction;
-    // MonoBehaviour 初始化后、首次执行 Update 前调用一次 Start
+
+    // 新增：声明刚体、移动向量变量
+    Rigidbody2D rigidbody2d;
+    Vector2 move;
+
     void Start()
     {
-        //QualitySettings.vSyncCount = 0;
-        //Application.targetFrameRate = 10;
         MoveAction.Enable();
+        // 获取物体身上的Rigidbody2D组件
+        rigidbody2d = GetComponent<Rigidbody2D>();
     }
-    // 每一帧都会执行 Update
+
     void Update()
     {
-        Vector2 move = MoveAction.ReadValue<Vector2>();
+        // 只在Update读取输入，不再处理位置移动
+        move = MoveAction.ReadValue<Vector2>();
         Debug.Log(move);
-        Vector2 position = (Vector2)transform.position + move * 3.0f * Time.deltaTime;
-        transform.position = position;
+    }
+
+    void FixedUpdate()
+    {
+        // 刚体移动逻辑放到FixedUpdate
+        Vector2 position = (Vector2)rigidbody2d.position + move * 3.0f * Time.deltaTime;
+        rigidbody2d.MovePosition(position);
     }
 }
